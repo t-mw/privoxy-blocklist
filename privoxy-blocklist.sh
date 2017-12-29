@@ -26,9 +26,9 @@
 ######################################################################
 
 # script config-file
-SCRIPTCONF=/etc/conf.d/privoxy-blacklist
+SCRIPTCONF=$HOME/.privoxy-blacklist
 # dependencies
-DEPENDS=( 'privoxy' 'sed' 'grep' 'bash' 'wget' )
+DEPENDS=( 'privoxy' 'gsed' 'grep' 'bash' 'wget' )
 
 ######################################################################
 #
@@ -92,12 +92,12 @@ function main()
     # blacklist of urls
     debug "Creating actionfile for ${list} ..." 1
     echo -e "{ +block{${list}} }" > ${actionfile}
-    sed '/^!.*/d;1,1 d;/^@@.*/d;/\$.*/d;/#/d;s/\./\\./g;s/\?/\\?/g;s/\*/.*/g;s/(/\\(/g;s/)/\\)/g;s/\[/\\[/g;s/\]/\\]/g;s/\^/[\/\&:\?=_]/g;s/^||/\./g;s/^|/^/g;s/|$/\$/g;/|/d' ${file} >> ${actionfile}
+    gsed '/^!.*/d;1,1 d;/^@@.*/d;/\$.*/d;/#/d;s/\./\\./g;s/\?/\\?/g;s/\*/.*/g;s/(/\\(/g;s/)/\\)/g;s/\[/\\[/g;s/\]/\\]/g;s/\^/[\/\&:\?=_]/g;s/^||/\./g;s/^|/^/g;s/|$/\$/g;/|/d' ${file} >> ${actionfile}
 
     debug "... creating filterfile for ${list} ..." 1
     echo "FILTER: ${list} Tag filter of ${list}" > ${filterfile}
     # set filter for html elements
-    sed '/^#/!d;s/^##//g;s/^#\(.*\)\[.*\]\[.*\]*/s@<([a-zA-Z0-9]+)\\s+.*id=.?\1.*>.*<\/\\1>@@g/g;s/^#\(.*\)/s@<([a-zA-Z0-9]+)\\s+.*id=.?\1.*>.*<\/\\1>@@g/g;s/^\.\(.*\)/s@<([a-zA-Z0-9]+)\\s+.*class=.?\1.*>.*<\/\\1>@@g/g;s/^a\[\(.*\)\]/s@<a.*\1.*>.*<\/a>@@g/g;s/^\([a-zA-Z0-9]*\)\.\(.*\)\[.*\]\[.*\]*/s@<\1.*class=.?\2.*>.*<\/\1>@@g/g;s/^\([a-zA-Z0-9]*\)#\(.*\):.*[:[^:]]*[^:]*/s@<\1.*id=.?\2.*>.*<\/\1>@@g/g;s/^\([a-zA-Z0-9]*\)#\(.*\)/s@<\1.*id=.?\2.*>.*<\/\1>@@g/g;s/^\[\([a-zA-Z]*\).=\(.*\)\]/s@\1^=\2>@@g/g;s/\^/[\/\&:\?=_]/g;s/\.\([a-zA-Z0-9]\)/\\.\1/g' ${file} >> ${filterfile}
+    gsed '/^#/!d;s/^##//g;s/^#\(.*\)\[.*\]\[.*\]*/s@<([a-zA-Z0-9]+)\\s+.*id=.?\1.*>.*<\/\\1>@@g/g;s/^#\(.*\)/s@<([a-zA-Z0-9]+)\\s+.*id=.?\1.*>.*<\/\\1>@@g/g;s/^\.\(.*\)/s@<([a-zA-Z0-9]+)\\s+.*class=.?\1.*>.*<\/\\1>@@g/g;s/^a\[\(.*\)\]/s@<a.*\1.*>.*<\/a>@@g/g;s/^\([a-zA-Z0-9]*\)\.\(.*\)\[.*\]\[.*\]*/s@<\1.*class=.?\2.*>.*<\/\1>@@g/g;s/^\([a-zA-Z0-9]*\)#\(.*\):.*[\:[^:]]*[^:]*/s@<\1.*id=.?\2.*>.*<\/\1>@@g/g;s/^\([a-zA-Z0-9]*\)#\(.*\)/s@<\1.*id=.?\2.*>.*<\/\1>@@g/g;s/^\[\([a-zA-Z]*\).=\(.*\)\]/s@\1^=\2>@@g/g;s/\^/[\/\&:\?=_]/g;s/\.\([a-zA-Z0-9]\)/\\.\1/g' ${file} >> ${filterfile}
     debug "... filterfile created - adding filterfile to actionfile ..." 1
     echo "{ +filter{${list}} }" >> ${actionfile}
     echo "*" >> ${actionfile}
@@ -106,7 +106,7 @@ function main()
     # create domain based whitelist
 
     # create domain based blacklist
-#    domains=$(sed '/^#/d;/#/!d;s/,~/,\*/g;s/~/;:\*/g;s/^\([a-zA-Z]\)/;:\1/g' ${file})
+#    domains=$(gsed '/^#/d;/#/!d;s/,~/,\*/g;s/~/;:\*/g;s/^\([a-zA-Z]\)/;:\1/g' ${file})
 #    [ -n "${domains}" ] && debug "... creating domainbased filterfiles ..." 1
 #    debug "Found Domains: ${domains}." 2
 #    ifs=$IFS
@@ -116,7 +116,7 @@ function main()
 #      dns=$(echo ${domain} | awk -F ',' '{print $1}' | awk -F '#' '{print $1}')
 #      debug "Modifying line: ${domain}" 2
 #      debug "   ... creating filterfile for ${dns} ..." 1
-#      sed '' ${file} > ${file%\.*}-${dns%~}.script.filter
+#      gsed '' ${file} > ${file%\.*}-${dns%~}.script.filter
 #      debug "   ... filterfile created ..." 1
 #      debug "   ... adding filterfile for ${dns} to actionfile ..." 1
 #      echo "{ +filter{${list}-${dns}} }" >> ${actionfile}
@@ -129,11 +129,11 @@ function main()
     debug "... creating and adding whitlist for urls ..." 1
     # whitelist of urls
     echo "{ -block }" >> ${actionfile}
-    sed '/^@@.*/!d;s/^@@//g;/\$.*/d;/#/d;s/\./\\./g;s/\?/\\?/g;s/\*/.*/g;s/(/\\(/g;s/)/\\)/g;s/\[/\\[/g;s/\]/\\]/g;s/\^/[\/\&:\?=_]/g;s/^||/\./g;s/^|/^/g;s/|$/\$/g;/|/d' ${file} >> ${actionfile}
+    gsed '/^@@.*/!d;s/^@@//g;/\$.*/d;/#/d;s/\./\\./g;s/\?/\\?/g;s/\*/.*/g;s/(/\\(/g;s/)/\\)/g;s/\[/\\[/g;s/\]/\\]/g;s/\^/[\/\&:\?=_]/g;s/^||/\./g;s/^|/^/g;s/|$/\$/g;/|/d' ${file} >> ${actionfile}
     debug "... created and added whitelist - creating and adding image handler ..." 1
     # whitelist of image urls
     echo "{ -block +handle-as-image }" >> ${actionfile}
-    sed '/^@@.*/!d;s/^@@//g;/\$.*image.*/!d;s/\$.*image.*//g;/#/d;s/\./\\./g;s/\?/\\?/g;s/\*/.*/g;s/(/\\(/g;s/)/\\)/g;s/\[/\\[/g;s/\]/\\]/g;s/\^/[\/\&:\?=_]/g;s/^||/\./g;s/^|/^/g;s/|$/\$/g;/|/d' ${file} >> ${actionfile}
+    gsed '/^@@.*/!d;s/^@@//g;/\$.*image.*/!d;s/\$.*image.*//g;/#/d;s/\./\\./g;s/\?/\\?/g;s/\*/.*/g;s/(/\\(/g;s/)/\\)/g;s/\[/\\[/g;s/\]/\\]/g;s/\^/[\/\&:\?=_]/g;s/^||/\./g;s/^|/^/g;s/|$/\$/g;/|/d' ${file} >> ${actionfile}
     debug "... created and added image handler ..." 1
     debug "... created actionfile for ${list}." 1
     
@@ -142,7 +142,7 @@ function main()
     if [ "$(grep $(basename ${actionfile}) ${PRIVOXY_CONF})" == "" ] 
     then
       debug "\nModifying ${PRIVOXY_CONF} ..." 0
-      sed "s/^actionsfile user\.action/actionsfile $(basename ${actionfile})\nactionsfile user.action/" ${PRIVOXY_CONF} > ${TMPDIR}/config
+      gsed "s/^actionsfile user\.action/actionsfile $(basename ${actionfile})\nactionsfile user.action/" ${PRIVOXY_CONF} > ${TMPDIR}/config
       debug "... modification done.\n" 0
       debug "Installing new config ..." 0
       install -o ${PRIVOXY_USER} -g ${PRIVOXY_GROUP} ${VERBOSE} ${TMPDIR}/config ${PRIVOXY_CONF}
@@ -154,7 +154,7 @@ function main()
     if $(grep $(basename ${filterfile}) ${PRIVOXY_CONF})
     then
       debug "\nModifying ${PRIVOXY_CONF} ..." 0
-      sed "s/^\(#*\)filterfile user\.filter/filterfile $(basename ${filterfile})\n\1filterfile user.filter/" ${PRIVOXY_CONF} > ${TMPDIR}/config
+      gsed "s/^\(#*\)filterfile user\.filter/filterfile $(basename ${filterfile})\n\1filterfile user.filter/" ${PRIVOXY_CONF} > ${TMPDIR}/config
       debug "... modification done.\n" 0
       debug "Installing new config ..." 0
       install -o ${PRIVOXY_USER} -g ${PRIVOXY_GROUP} ${VERBOSE} ${TMPDIR}/config ${PRIVOXY_CONF}
@@ -253,7 +253,7 @@ do
       read -p "Do you really want to remove all build lists?(y/N) " choice
       [ "${choice}" != "y" ] && exit 0
       rm -rf ${PRIVOXY_DIR}/*.script.{action,filter} && \
-      sed '/^actionsfile .*\.script\.action$/d;/^filterfile .*\.script\.filter$/d' -i ${PRIVOXY_CONF} && echo "Lists removed." && exit 0
+      gsed '/^actionsfile .*\.script\.action$/d;/^filterfile .*\.script\.filter$/d' -i ${PRIVOXY_CONF} && echo "Lists removed." && exit 0
       echo -e "An error occured while removing the lists.\nPlease have a look into ${PRIVOXY_DIR} whether there are .script.* files and search for *.script.* in ${PRIVOXY_CONF}."
       exit 1
       ;;
